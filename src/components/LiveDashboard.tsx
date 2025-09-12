@@ -51,7 +51,7 @@ export const LiveDashboard = ({ onRefresh, loading = false, data }: LiveDashboar
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total People</p>
+                    <p className="text-sm font-medium text-card-foreground/70">Total People</p>
                     <p className="text-2xl font-bold text-primary">{totalPeople}</p>
                   </div>
                   <Users className="w-8 h-8 text-primary" />
@@ -65,12 +65,12 @@ export const LiveDashboard = ({ onRefresh, loading = false, data }: LiveDashboar
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-sm font-medium text-card-foreground/70">
                         {building.building_name}
                       </p>
                       <p className="text-xl font-bold">{building.people_inside}</p>
                     </div>
-                    <Building className="w-6 h-6 text-muted-foreground" />
+                    <Building className="w-6 h-6 text-card-foreground/60" />
                   </div>
                 </CardContent>
               </Card>

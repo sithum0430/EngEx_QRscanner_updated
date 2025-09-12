@@ -17,7 +17,7 @@ All colors MUST be HSL.
       radial-gradient(circle at 40% 60%, hsl(220 60% 22% / 0.4) 0%, transparent 50%),
       linear-gradient(45deg, transparent 40%, hsl(210 50% 25% / 0.1) 50%, transparent 60%),
       repeating-linear-gradient(90deg, transparent 0px, hsl(200 40% 18% / 0.05) 1px, transparent 2px, transparent 40px);
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
     /* Modern glass-morphism cards */
     --card: 210 30% 98%;

@@ -28,27 +28,46 @@ export default function Dashboard() {
   const loadCounts = async () => {
     setLoading(true);
     try {
-      // Execute the exact SQL query you provided
+      // Try RPC function first; fallback computes counts from entryexitlog
       const { data, error } = await supabase.rpc('get_current_building_counts');
 
-      if (error) {
-        // If RPC function doesn't exist, fall back to manual query
+      if (error || !data) {
+        // Fallback: compute from raw logs
         const { data: buildingData, error: buildingError } = await supabase
           .from('building')
           .select('building_id, building_name');
-
         if (buildingError) throw buildingError;
 
-        // For now, return buildings with 0 count until we implement the complex query
-        const countsData = buildingData.map(building => ({
-          building_id: building.building_id.toString(),
-          building_name: building.building_name,
-          people_inside: 0
-        }));
+        const { data: logs, error: logsError } = await supabase
+          .from('entryexitlog')
+          .select('building_id, qr_value, action, timestamp')
+          .order('timestamp', { ascending: false });
+        if (logsError) throw logsError;
+
+        const latestMap = new Map<string, string>();
+        for (const log of logs as any[]) {
+          const key = `${log.building_id}|${log.qr_value}`;
+          if (!latestMap.has(key)) {
+            latestMap.set(key, log.action);
+          }
+        }
+
+        const countsData = (buildingData as any[]).map((b) => {
+          let count = 0;
+          latestMap.forEach((action, key) => {
+            const [bid] = key.split('|');
+            if (Number(bid) === b.building_id && action === 'entry') count++;
+          });
+          return {
+            building_id: b.building_id.toString(),
+            building_name: b.building_name,
+            people_inside: count,
+          } as BuildingCount;
+        });
 
         setData(countsData);
       } else {
-        setData(data);
+        setData(data as BuildingCount[]);
       }
     } catch (error) {
       console.error('Error loading counts:', error);
@@ -73,15 +92,15 @@ export default function Dashboard() {
             <img src={engexLogo} alt="ENGEX Exhibition" className="w-16 h-16" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">ENGEX Live Dashboard</h1>
-            <p className="text-muted-foreground">Real-time crowd monitoring for heatmap visualization</p>
+            <h1 className="text-3xl font-bold text-primary drop-shadow">ENGEX Live Dashboard</h1>
+            <p className="text-primary-foreground/80">Real-time crowd monitoring for heatmap visualization</p>
           </div>
         </div>
 
         {/* Navigation */}
         <div className="flex justify-center">
           <Button
-            variant="outline"
+            variant="default"
             onClick={() => window.location.href = '/'}
             className="flex items-center gap-2"
           >
