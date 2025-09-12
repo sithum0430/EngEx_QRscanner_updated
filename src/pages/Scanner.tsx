@@ -6,7 +6,7 @@ import { ScanResult } from '@/components/ScanResult';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import uopLogo from '@/assets/uop-logo-real.png';
+const uopLogo = '/lovable-uploads/f10da031-5557-4314-87a4-d1e1801714a1.png';
 const engexLogo = '/lovable-uploads/c8de7f56-9b26-4a5d-823b-235879e3f037.png';
 import { BarChart3 } from 'lucide-react';
 
