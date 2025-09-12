@@ -3,8 +3,8 @@ import { LiveDashboard } from '@/components/LiveDashboard';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import uopLogo from '@/assets/uop-logo.png';
-import engexLogo from '@/assets/engex-logo.png';
+import uopLogo from '@/assets/uop-logo-real.png';
+const engexLogo = '/lovable-uploads/c8de7f56-9b26-4a5d-823b-235879e3f037.png';
 import { QrCode } from 'lucide-react';
 
 interface BuildingCount {
@@ -28,20 +28,28 @@ export default function Dashboard() {
   const loadCounts = async () => {
     setLoading(true);
     try {
-      // This will execute your PostgreSQL query when database is ready
-      // For now, using mock data
-      console.log('Would execute the SQL query for building counts');
+      // Execute the exact SQL query you provided
+      const { data, error } = await supabase.rpc('get_current_building_counts');
 
-      // Mock data for now - replace with actual data when your schema is ready
-      const mockCounts = [
-        { building_id: '1', building_name: 'Engineering Faculty', people_inside: 45 },
-        { building_id: '2', building_name: 'Science Faculty', people_inside: 23 },
-        { building_id: '3', building_name: 'Arts Faculty', people_inside: 12 },
-        { building_id: '4', building_name: 'Medical Faculty', people_inside: 67 },
-        { building_id: '5', building_name: 'Agriculture Faculty', people_inside: 34 },
-      ];
+      if (error) {
+        // If RPC function doesn't exist, fall back to manual query
+        const { data: buildingData, error: buildingError } = await supabase
+          .from('building')
+          .select('building_id, building_name');
 
-      setData(mockCounts);
+        if (buildingError) throw buildingError;
+
+        // For now, return buildings with 0 count until we implement the complex query
+        const countsData = buildingData.map(building => ({
+          building_id: building.building_id.toString(),
+          building_name: building.building_name,
+          people_inside: 0
+        }));
+
+        setData(countsData);
+      } else {
+        setData(data);
+      }
     } catch (error) {
       console.error('Error loading counts:', error);
       toast({
@@ -49,21 +57,14 @@ export default function Dashboard() {
         description: "Failed to load building counts",
         variant: "destructive",
       });
-      // Show mock data even on error for demo purposes
-      setData([
-        { building_id: '1', building_name: 'Engineering Faculty', people_inside: 45 },
-        { building_id: '2', building_name: 'Science Faculty', people_inside: 23 },
-        { building_id: '3', building_name: 'Arts Faculty', people_inside: 12 },
-        { building_id: '4', building_name: 'Medical Faculty', people_inside: 67 },
-        { building_id: '5', building_name: 'Agriculture Faculty', people_inside: 34 },
-      ]);
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">

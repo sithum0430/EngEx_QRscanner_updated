@@ -6,8 +6,8 @@ import { ScanResult } from '@/components/ScanResult';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import uopLogo from '@/assets/uop-logo.png';
-import engexLogo from '@/assets/engex-logo.png';
+import uopLogo from '@/assets/uop-logo-real.png';
+const engexLogo = '/lovable-uploads/c8de7f56-9b26-4a5d-823b-235879e3f037.png';
 import { BarChart3 } from 'lucide-react';
 
 interface Building {
@@ -35,15 +35,19 @@ export default function Scanner() {
 
   const loadBuildings = async () => {
     try {
-      // Placeholder buildings - will be replaced with your actual data
-      const mockBuildings = [
-        { id: '1', name: 'Engineering Faculty' },
-        { id: '2', name: 'Science Faculty' },
-        { id: '3', name: 'Arts Faculty' },
-        { id: '4', name: 'Medical Faculty' },
-        { id: '5', name: 'Agriculture Faculty' },
-      ];
-      setBuildings(mockBuildings);
+      const { data, error } = await supabase
+        .from('building')
+        .select('building_id, building_name')
+        .order('building_name');
+      
+      if (error) throw error;
+      
+      const formattedBuildings = data.map(building => ({
+        id: building.building_id.toString(),
+        name: building.building_name
+      }));
+      
+      setBuildings(formattedBuildings);
       setLoading(false);
     } catch (error) {
       console.error('Error loading buildings:', error);
@@ -85,20 +89,16 @@ export default function Scanner() {
 
     setSaving(true);
     try {
-      // This will work with your existing database schema
-      // For now, we'll simulate the save operation
-      console.log('Saving entry:', {
-        qr_value: scanResult.qrValue,
-        building_id: selectedBuilding,
-        action: action,
-        timestamp: new Date().toISOString(),
-        scanned_by: 'mobile_app',
-      });
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('entryexitlog')
+        .insert({
+          qr_value: scanResult.qrValue,
+          building_id: parseInt(selectedBuilding),
+          action: action,
+          timestamp: new Date().toISOString(),
+        });
 
-      // Will integrate with your actual database when schema is provided
+      if (error) throw error;
 
       setScanResult(prev => prev ? { ...prev, saved: true } : null);
       toast({
@@ -124,7 +124,7 @@ export default function Scanner() {
   const selectedBuildingName = buildings.find(b => b.id === selectedBuilding)?.name || '';
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen p-4">
       <div className="max-w-md mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">

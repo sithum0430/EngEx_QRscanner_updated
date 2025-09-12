@@ -21,6 +21,8 @@ export default {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          hover: "hsl(var(--primary-hover))",
+          glow: "hsl(var(--primary-glow))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -57,6 +59,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      boxShadow: {
+        'card': 'var(--card-shadow)',
+        'glow': '0 0 30px hsl(var(--primary-glow) / 0.5)',
+      },
+      backgroundImage: {
+        'gradient-primary': 'var(--background-gradient)',
+        'pattern': 'var(--background-pattern)',
       },
       borderRadius: {
         lg: "var(--radius)",
