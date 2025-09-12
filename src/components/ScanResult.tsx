@@ -62,18 +62,12 @@ export const ScanResult = ({
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <Button 
-            onClick={onSave} 
-            disabled={saving || saved}
-            className="flex-1"
-          >
-            {saving ? 'Saving...' : saved ? 'Saved' : 'Save Entry'}
-          </Button>
+        <div className="flex justify-center">
           <Button 
             onClick={onClear} 
             variant="outline"
             disabled={saving}
+            className="px-8"
           >
             Clear
           </Button>

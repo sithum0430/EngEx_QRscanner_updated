@@ -60,7 +60,7 @@ export default function Scanner() {
     }
   };
 
-  const handleScan = (qrValue: string) => {
+  const handleScan = async (qrValue: string) => {
     if (!selectedBuilding) {
       toast({
         title: "No Building Selected",
@@ -78,21 +78,13 @@ export default function Scanner() {
     });
     setScannerActive(false);
 
-    toast({
-      title: "QR Code Scanned",
-      description: `Scanned: ${qrValue.substring(0, 20)}...`,
-    });
-  };
-
-  const handleSave = async () => {
-    if (!scanResult || !selectedBuilding) return;
-
+    // Auto-save the entry
     setSaving(true);
     try {
       const { error } = await supabase
         .from('entryexitlog')
         .insert({
-          qr_value: scanResult.qrValue,
+          qr_value: qrValue,
           building_id: parseInt(selectedBuilding),
           action: action,
           timestamp: new Date().toISOString(),
@@ -116,6 +108,7 @@ export default function Scanner() {
       setSaving(false);
     }
   };
+
 
   const handleClear = () => {
     setScanResult(null);
@@ -178,7 +171,7 @@ export default function Scanner() {
             building={selectedBuildingName}
             action={action}
             timestamp={scanResult.timestamp}
-            onSave={handleSave}
+            onSave={() => {}} // Not used anymore
             onClear={handleClear}
             saving={saving}
             saved={scanResult.saved}
