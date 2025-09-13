@@ -43,8 +43,17 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
 
     try {
       setError('');
+      // Check if camera is available first
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported in this browser');
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       
       videoRef.current.srcObject = stream;

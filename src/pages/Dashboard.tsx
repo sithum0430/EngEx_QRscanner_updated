@@ -92,7 +92,7 @@ export default function Dashboard() {
             <img src={engexLogo} alt="ENGEX Exhibition" className="w-16 h-16" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-primary drop-shadow">ENGEX Live Dashboard</h1>
+            <h1 className="text-3xl font-bold text-primary drop-shadow">EngEx Live Dashboard</h1>
             <p className="text-primary-foreground/80">Real-time crowd monitoring for heatmap visualization</p>
           </div>
         </div>

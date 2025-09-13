@@ -37,7 +37,8 @@ export const LiveDashboard = ({ onRefresh, loading = false, data }: LiveDashboar
               onClick={onRefresh} 
               disabled={loading}
               size="sm"
-              variant="outline"
+              variant="secondary"
+              className="text-foreground"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
