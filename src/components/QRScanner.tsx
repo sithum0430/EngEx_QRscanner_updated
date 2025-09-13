@@ -43,6 +43,25 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
 
     try {
       setError('');
+
+      // Force HTTPS / secure context for camera APIs
+      if (typeof window !== 'undefined') {
+        const { protocol, hostname, host, pathname, search, hash } = window.location;
+        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+        if (protocol === 'http:' && !isLocal) {
+          window.location.replace(`https://${host}${pathname}${search}${hash}`);
+          setError('Redirecting to secure HTTPS for camera access...');
+          return;
+        }
+        if (!window.isSecureContext && !isLocal) {
+          setError('Camera requires a secure context (HTTPS). Please reopen the secure link.');
+          return;
+        }
+        if (window.top !== window.self) {
+          console.warn('Camera may be blocked in embedded view (iframe).');
+        }
+      }
+
       // Check if camera is available first
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera not supported in this browser');
@@ -50,10 +69,11 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
       
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
-          facingMode: 'environment',
+          facingMode: { ideal: 'environment' },
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        }
+        },
+        audio: false,
       });
       
       videoRef.current.srcObject = stream;
@@ -67,8 +87,23 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
         }
       });
     } catch (err) {
-      setError('Camera access denied or not available');
-      console.error('Camera error:', err);
+      const e = err as DOMException & { message?: string };
+      let message = 'Camera access denied or not available';
+      if (e?.name === 'NotAllowedError' || e?.name === 'SecurityError') {
+        if (typeof window !== 'undefined') {
+          if (window.top !== window.self) {
+            message = 'Camera is blocked in embedded view. Tap "Open Fullscreen" below.';
+          } else if (!window.isSecureContext) {
+            message = 'Camera requires HTTPS. Please use the secure link.';
+          } else {
+            message = 'Please allow camera access in your browser settings and reload.';
+          }
+        }
+      } else if (e?.name === 'NotFoundError' || e?.name === 'OverconstrainedError') {
+        message = 'No suitable camera found. Try switching to the back camera.';
+      }
+      setError(message);
+      console.error('Camera error:', e);
     }
   };
 
@@ -117,7 +152,23 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
           )}
         </div>
         {error && (
-          <p className="text-destructive text-sm mt-2">{error}</p>
+          <div className="mt-2 space-y-2">
+            <p className="text-destructive text-sm">{error}</p>
+            {typeof window !== 'undefined' && window.top !== window.self && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="text-foreground"
+                onClick={() => {
+                  try {
+                    window.open(window.location.href, '_blank', 'noopener,noreferrer');
+                  } catch {}
+                }}
+              >
+                Open Fullscreen
+              </Button>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
