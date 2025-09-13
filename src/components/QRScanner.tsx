@@ -44,16 +44,22 @@ export const QRScanner = ({ onScan, isActive, onToggle }: QRScannerProps) => {
     try {
       setError('');
 
-      // Force HTTPS / secure context for camera APIs
+      // Prefer HTTPS for camera APIs, but don't break local/private network access
       if (typeof window !== 'undefined') {
-        const { protocol, hostname, host, pathname, search, hash } = window.location;
-        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-        if (protocol === 'http:' && !isLocal) {
-          window.location.replace(`https://${host}${pathname}${search}${hash}`);
+        const { protocol, hostname, pathname, search, hash } = window.location;
+        const isLoopback = ['localhost', '127.0.0.1', '::1'].includes(hostname);
+        const isPrivateIPv4 =
+          /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+          /^192\.168\.\d+\.\d+$/.test(hostname) ||
+          /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(hostname);
+        const isDev = import.meta.env.MODE !== 'production';
+        const allowHttp = isLoopback || isPrivateIPv4 || isDev;
+        if (protocol === 'http:' && !allowHttp) {
+          window.location.replace(`https://${hostname}${pathname}${search}${hash}`);
           setError('Redirecting to secure HTTPS for camera access...');
           return;
         }
-        if (!window.isSecureContext && !isLocal) {
+        if (!window.isSecureContext && !allowHttp) {
           setError('Camera requires a secure context (HTTPS). Please reopen the secure link.');
           return;
         }
