@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building } from 'lucide-react';
+import { Building as BuildingIcon } from 'lucide-react';
 
 interface Building {
   id: string;
@@ -24,7 +24,7 @@ export const BuildingSelector = ({
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Building className="w-5 h-5" />
+          <BuildingIcon className="w-5 h-5" />
           Select Building
         </CardTitle>
       </CardHeader>

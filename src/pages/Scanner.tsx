@@ -5,7 +5,6 @@ import { ActionToggle } from '@/components/ActionToggle';
 import { ScanResult } from '@/components/ScanResult';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 const uopLogo = '/lovable-uploads/f10da031-5557-4314-87a4-d1e1801714a1.png';
 const engexLogo = '/lovable-uploads/c8de7f56-9b26-4a5d-823b-235879e3f037.png';
 import { BarChart3 } from 'lucide-react';
@@ -35,30 +34,19 @@ export default function Scanner() {
 
   const loadBuildings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('building')
-        .select('building_id, building_name')
-        .order('building_name');
-      
-      if (error) throw error;
-      
-      const formattedBuildings = data.map(building => ({
-        id: building.building_id.toString(),
-        name: building.building_name
-      }));
-      
-      setBuildings(formattedBuildings);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading buildings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load buildings",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
+    const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/buildings`);
+    if (!res.ok) throw new Error('Failed to load');
+  const data = await res.json();
+  // Normalize ids to strings (DB may return numbers)
+  const normalized = (data as any[]).map(b => ({ id: String(b.id), name: b.name }));
+  setBuildings(normalized); // expected { id, name }[]
+    setLoading(false);
+  } catch (error) {
+    console.error(error);
+    toast({ title: "Error", description: "Failed to load buildings", variant: "destructive" });
+    setLoading(false);
+  }
+};
 
   const handleScan = async (qrValue: string) => {
     if (!selectedBuilding) {
@@ -78,20 +66,23 @@ export default function Scanner() {
     });
     setScannerActive(false);
 
-    // Auto-save the entry
+    // Auto-save the entry via backend API
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('entryexitlog')
-        .insert({
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           qr_value: qrValue,
           building_id: parseInt(selectedBuilding),
           action: action,
           timestamp: new Date().toISOString(),
-        });
+        }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Save failed');
 
+      // optional: const savedRow = await res.json();
       setScanResult(prev => prev ? { ...prev, saved: true } : null);
       toast({
         title: "Entry Saved",
